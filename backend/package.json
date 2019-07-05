@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Bruno Heinrich",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parser": "^2.2.0",
+    "database-js-adodb": "^1.1.2",
+    "database-js2": "^1.4.2",
+    "express": "^4.16.4",
+    "mdb": "^0.1.0",
+    "moment": "^2.24.0",
+    "multer": "^1.4.1",
+    "nodemon": "^1.19.1"
+  },
+  "scripts": {
+    "start": "nodemon src/index.js"
+  }
+}
