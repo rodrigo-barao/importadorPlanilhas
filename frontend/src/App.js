@@ -18,28 +18,12 @@ class App extends Component {
     }
 
     sendRequest = (files) => {
-        // var data = new FormData();
-        // var data = [];
-
-        // console.log(data);
-        // this.setState({
-        //     files: files,
-        // });
-
-        // data.append('files', this.state);
-
-        // console.log(data);
-
-        // api.get('/teste');
-        // var arrayTest = [];
         const data = new FormData();
         files.forEach((file) => {
-            // const data = new FormData();
             console.log(file);
             data.append('files', file);
 
         });
-        console.log(data);
         const response = api.post(`/uploadCobranca`, data);
 
         console.log(response);
