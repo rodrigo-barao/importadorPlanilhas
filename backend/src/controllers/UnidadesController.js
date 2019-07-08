@@ -9,7 +9,7 @@ module.exports = {
             res.json("Você não pode enviar mais de um arquivo");
         }
 
-        console.log(req.files);
+        // console.log(req.files);
 
         // if ()
 
@@ -49,18 +49,18 @@ function processarCsv (results) {
             proprietário_telefone: joinTwoDatas(line['propriet_fonec'], line['propriet_foner']),
             proprietário_estado: line['propriet_celular'],
             proprietário_email: joinTwoDatas(line['propriet_mail'], line['propriet_mail2']),
-            proprietário_rg: line['propriet_rg'],
+            proprietário_rg: getRg(line['propriet_rg']),
             proprietário_cpf: line['propriet_doc/cnpj'],
 
-            inquilino_nome: line[''],
-            inquilino_telefone: line[''],
-            inquilino_celular: line[''],
-            inquilino_forma_de_entrega: line[''],
-            'inquilino_cpf/cnpj': line[''],
-            inquilino_rg: line[''],
-            inquilino_email: line['']
-
+            inquilino_nome: line['morador_nome'],
+            inquilino_telefone: joinTwoDatas(line['morador_fonec'], line['morador_foner']),
+            inquilino_celular: line['morador_celular'],
+            'inquilino_cpf/cnpj': line['morador_doc'],
+            inquilino_rg: getRg(line['morador_rg']),
+            inquilino_email: joinTwoDatas(line['morador_mail'], line['morador_mail2']),
         };
+
+        // console.log(lineOutput);
 
         csvOutput.push(lineOutput);
     });
@@ -81,6 +81,10 @@ function convertToCsv(data) {
     return csv;
 }
 
+function getRg(Rg) {
+    return Rg = Rg.replace("RG:", "").replace(/\./g, "").replace(",", "").replace("-", "").replace(" ", "");
+}
+
 function joinTwoDatas(field1, field2) {
     if (!field1 && !field2) {
         return ''
@@ -88,15 +92,5 @@ function joinTwoDatas(field1, field2) {
         return String(field1) + String(field2);
     } else {
         return String(field1) + ';' + String(field2);
-    }
-}
-
-function getPhone(phone1, phone2) {
-    if (!phone1 && !phone2) {
-        return ''
-    } else if (!phone1 || !phone2) {
-        return String(phone1) + String(phone2);
-    } else {
-        return String(phone1) + ';' + String(phone2);
     }
 }
