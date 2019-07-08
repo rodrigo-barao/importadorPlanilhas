@@ -17,16 +17,20 @@ class App extends Component {
         files: [],
     }
 
-    sendRequest = (files) => {
+    sendRequest = async (files) => {
         const data = new FormData();
         files.forEach((file) => {
-            console.log(file);
             data.append('files', file);
 
         });
-        const response = api.post(`/uploadCobranca`, data);
+        const response = await api.post(`/uploadCobranca`, data);
 
-        console.log(response);
+        if (response.status !== 200) {
+            console.log(response.data);
+            // alert(response.data);
+        }
+
+        // console.log(response);
     }
 
     render() {

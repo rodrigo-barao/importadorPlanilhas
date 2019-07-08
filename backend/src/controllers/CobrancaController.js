@@ -7,11 +7,11 @@ var results = [];
 module.exports = {
     async processarCobrancaAction(req, res) {
         if (!req.files) {
-            return res.json("não tem a propriedade length");
+            return res.json("Nenhum arquivo enviado");
         }
 
         if (req.files.length != 2) {
-            return res.json("É necessário enviar dois arquivos, a planilha CSV e o depara.txt");
+            return res.send("É necessário enviar dois arquivos, a planilha CSV e o depara.txt");
         }
 
         let categoryTxt = await readTxtFile(req.files);
@@ -30,11 +30,6 @@ module.exports = {
 
         return res.json("Sucesso");
     },
-
-    async testeAction(req, res) {
-        console.log("bateu aqui");
-        return res.json("Bateu aqui");
-    }
 };
 
 async function readTxtFile(files) {
@@ -76,7 +71,9 @@ function processarCsv (results, categoryTxt) {
             nosso_numero: line['boleto1'],
             complemento: line['acordo'],
             conta_categoria: getCategory(line['especie'], categoryTxt),
-        }
+        };
+
+        console.log(lineOutput);
 
         csvOutput.push(lineOutput);
     });
