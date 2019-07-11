@@ -1,53 +1,30 @@
 import React, { Component } from 'react';
-import api from './services/api';
-import Dropzone from 'react-dropzone';
-// import axios from 'axios';
-// import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import { BrowserRouter, Switch, Route } from 'react-router-dom';
 
 import './bootstrap.min.css';
 
+import Home from './pages/Home';
+import Charges from './pages/Charges';
+import Units from './pages/Units';
+
 class App extends Component {
-    constructor(props) {
-        super(props);
-
-        this.sendRequest = this.sendRequest.bind(this);
-    }
-
     state = {
         files: [],
-    }
-
-    sendRequest = async (files) => {
-        const data = new FormData();
-        files.forEach((file) => {
-            data.append('files', file);
-
-        });
-        const response = await api.post(`/uploadCobranca`, data);
-
-        if (response.status !== 200) {
-            console.log(response.data);
-            // alert(response.data);
-        }
-
-        // console.log(response);
-    }
+    };
 
     render() {
         return (
             <div className="form-control">
-                <Dropzone onDrop={this.sendRequest}>
-                    { ({ getRootProps, getInputProps }) => (
-                        <div className="form-input" {...getRootProps()}>
-                            <input {...getInputProps()} />
-
-                            <p>Arraste arquivos ou clique aqui</p>
-                        </div>
-                    )}
-                </Dropzone>
+                <BrowserRouter>
+                    <Switch>
+                        <Route path="/" exact component={Home} />
+                        <Route path="/charges" exact component={Charges} />
+                        <Route path="/units" exact component={Units} />
+                    </Switch>
+                </BrowserRouter>
             </div>
         )
-    }
+    };
 }
 
 export default App;

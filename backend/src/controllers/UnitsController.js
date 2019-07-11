@@ -4,14 +4,14 @@ const fs = require('fs');
 var results = [];
 
 module.exports = {
-    async processarUnidadeAction(req, res) {
-        if (req.files.length != 1) {
-            res.json("Você não pode enviar mais de um arquivo");
+    async sendUnits(req, res) {
+        if (!req.files) {
+            return res.json("Nenhum arquivo enviado");
         }
 
-        // console.log(req.files);
-
-        // if ()
+        if (req.files.length != 1) {
+            return res.json("Você não pode enviar mais de um arquivo");
+        }
 
         readFile(req.files[0].path, importType = null);
 
@@ -19,7 +19,7 @@ module.exports = {
             fs.unlinkSync(file.path);
         });
 
-        res.json("Sucesso");
+        return res.json("Sucesso");
     },
 };
 
@@ -49,7 +49,7 @@ function processarCsv (results) {
             proprietário_telefone: joinTwoDatas(line['propriet_fonec'], line['propriet_foner']),
             proprietário_estado: line['propriet_celular'],
             proprietário_email: joinTwoDatas(line['propriet_mail'], line['propriet_mail2']),
-            proprietário_rg: getRg(line['propriet_rg']),
+            proprietário_rg: line['propriet_rg'],
             proprietário_cpf: line['propriet_doc/cnpj'],
 
             inquilino_nome: line['morador_nome'],
@@ -59,8 +59,6 @@ function processarCsv (results) {
             inquilino_rg: getRg(line['morador_rg']),
             inquilino_email: joinTwoDatas(line['morador_mail'], line['morador_mail2']),
         };
-
-        // console.log(lineOutput);
 
         csvOutput.push(lineOutput);
     });

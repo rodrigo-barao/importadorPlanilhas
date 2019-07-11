@@ -5,30 +5,43 @@ const moment = require('moment');
 var results = [];
 
 module.exports = {
-    async processarCobrancaAction(req, res) {
+    async sendCharges(req, res) {
         if (!req.files) {
-            return res.json("Nenhum arquivo enviado");
+            return res.status(500).json("Nenhum arquivo enviado");
         }
 
         if (req.files.length != 2) {
-            return res.send("É necessário enviar dois arquivos, a planilha CSV e o depara.txt");
+            return res.status(500).send("É necessário enviar dois arquivos, a planilha CSV e o depara.txt");
         }
 
         let categoryTxt = await readTxtFile(req.files);
 
-        var csvFile = req.files.filter(file => {
+        var csvFile = await req.files.filter(file => {
             if (file.originalname.includes(".csv")) {
                 return file;
             }
         });
 
-        readFile(csvFile[0].path, categoryTxt);
+        await readFile(csvFile[0].path, categoryTxt);
+        // let fileName = await readFile(csvFile[0].path, categoryTxt);
 
         req.files.forEach(file => {
             fs.unlinkSync(file.path);
         });
 
-        return res.json("Sucesso");
+        // console.log("out of scope -> " + fileName);
+
+        // res.download('./src/files/output/exemploCobranca.csv', String(fileName) + '.csv', (err) => {
+        return res.download('./src/files/output/exemploCobranca.csv');
+        // await res.download('./src/files/output/exemploCobranca.csv', 'cobrancas.csv', (err) => {
+        //     if (err) {
+        //         return res.json(err);
+        //     } else {
+        //         return res.json("Sucesso");
+        //     }
+        // });
+
+        // return res.json("Sucesso");
     },
 };
 
@@ -48,40 +61,49 @@ async function readTxtFile(files) {
     }
 }
 
-function readFile(filePath, categoryTxt = null) {
-    fs.createReadStream(filePath)
+async function readFile(filePath, categoryTxt = null) {
+    return await fs.createReadStream(filePath)
     .pipe(csv())
-    .on('data', (data) => results.push(data))
-    .on('end', () => {
-        processarCsv(results, categoryTxt);
+    .on('data', async (data) => await results.push(data))
+    .on('end', async () => {
+        return await processarCsv(results, categoryTxt);
     });
 }
 
-function processarCsv (results, categoryTxt) {
+async function processarCsv (results, categoryTxt) {
     var csvOutput = [];
+    let fileName;
 
-    results.forEach(function (line, key) {
+    for (let i = 0; i < results.length; i++) {
+        if (!fileName) {
+            fileName = await getFileName(results[i]['nome']);
+        }
+
         var lineOutput = {
-            vencimento: getDate(line['data1']),
-            data_de_competencia: getDateC(line['data1']),
-            cobranca_extraordinaria: getType(line['tipo']),
-            valor: getValue(line['valor3']),
-            unidade: line['apto'],
-            bloco: line['bloco'],
-            nosso_numero: line['boleto1'],
-            complemento: line['acordo'],
-            conta_categoria: getCategory(line['especie'], categoryTxt),
+            vencimento: getDate(results[i]['data1']),
+            data_de_competencia: getDateC(results[i]['data1']),
+            cobranca_extraordinaria: getType(results[i]['tipo']),
+            valor: getValue(results[i]['valor3']),
+            unidade: results[i]['apto'],
+            bloco: results[i]['bloco'],
+            nosso_numero: results[i]['boleto1'],
+            complemento: results[i]['acordo'],
+            conta_categoria: getCategory(results[i]['especie'], categoryTxt),
         };
 
-        console.log(lineOutput);
-
         csvOutput.push(lineOutput);
-    });
+    }
 
     fs.writeFile('./src/files/output/exemploCobranca.csv', convertToCsv(csvOutput),{enconding:'utf-8',flag: 'a'}, function (err) {
         if (err) throw err;
         console.log('Arquivo salvo!');
     });
+
+    return fileName;
+}
+
+async function getFileName(field) {
+    return field = field.replace(/ /g, "").replace(/\./g, "");
 }
 
 function convertToCsv(data) {
@@ -100,7 +122,7 @@ function getCategory(data, categoryTxt) {
     }
 
     categoryTxt = categoryTreatment(categoryTxt);
-    defaultCategory = '1.9';
+    defaultCategory = '1.1';
 
     categoryTxt.forEach(category => {
         if (category[0] == data) {
