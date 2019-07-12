@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import api from '../services/api';
 import Dropzone from 'react-dropzone';
+const FileDownload = require('js-file-download');
 
 export default class Charges extends Component {
     sendRequest = async (files) => {
@@ -9,16 +10,18 @@ export default class Charges extends Component {
             data.append('files', file);
         });
 
-        let response;
+        // let response;
         try {
-            response = await api.post(`/uploadCharges`, data);
-
-            if (response.status >= 500) {
-                this.setState({
-                    hasError: true,
-                    errorMsg: response.data,
-                });
-            }
+            await api.post(`/uploadCharges`, data).then((response) => {
+                if (response.status >= 500) {
+                    this.setState({
+                        hasError: true,
+                        errorMsg: response.data,
+                    });
+                } else {
+                    FileDownload(response.data, 'cobranca.csv');
+                }
+            });
         }
         catch (err) {
             return;

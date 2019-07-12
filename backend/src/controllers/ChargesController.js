@@ -22,26 +22,35 @@ module.exports = {
             }
         });
 
-        await readFile(csvFile[0].path, categoryTxt);
-        // let fileName = await readFile(csvFile[0].path, categoryTxt);
+        // await readFile(csvFile[0].path, categoryTxt);
+
+        var options = {
+            root: '/home/bruno/Desktop/projetos/conversorCsv/backend/src/files/output/',
+            dotfiles: 'deny',
+            headers: {
+                'x-timestamp': Date.now(),
+                'x-sent': true,
+                'Content-Type': 'file/csv',
+                'Content-Disposition': 'attachment; filename="picture.csv"'
+            }
+        }
+
+        let fileContent = await readFile(csvFile[0].path);
+
+        let fileName = await processarCsv(fileContent, categoryTxt);
+        console.log(fileName);
 
         req.files.forEach(file => {
             fs.unlinkSync(file.path);
         });
 
-        // console.log("out of scope -> " + fileName);
-
-        // res.download('./src/files/output/exemploCobranca.csv', String(fileName) + '.csv', (err) => {
-        return res.download('./src/files/output/exemploCobranca.csv');
+        return await res.sendFile('exemploCobranca.csv', options);
+        // return await res.download('./src/files/output/exemploCobranca.csv');
         // await res.download('./src/files/output/exemploCobranca.csv', 'cobrancas.csv', (err) => {
         //     if (err) {
-        //         return res.json(err);
-        //     } else {
-        //         return res.json("Sucesso");
+        //         res.json(err);
         //     }
         // });
-
-        // return res.json("Sucesso");
     },
 };
 
@@ -53,7 +62,7 @@ async function readTxtFile(files) {
             }
         });
 
-        let categoryTxt = fs.readFileSync(file[0].path, "utf-8");
+        let categoryTxt = await fs.readFileSync(file[0].path, "utf-8");
 
         return categoryTxt;
     } catch(err) {
@@ -61,40 +70,44 @@ async function readTxtFile(files) {
     }
 }
 
-async function readFile(filePath, categoryTxt = null) {
-    return await fs.createReadStream(filePath)
+async function readFile(filePath) {
+    let results = await fs.createReadStream(filePath)
     .pipe(csv())
-    .on('data', async (data) => await results.push(data))
+    .on('data', async (data) => results.push(data))
     .on('end', async () => {
-        return await processarCsv(results, categoryTxt);
+        // return await processarCsv(results, categoryTxt);
+        console.log(results);
+        return results;
     });
+
+    return results;
 }
 
-async function processarCsv (results, categoryTxt) {
+async function processarCsv (fileContent, categoryTxt) {
     var csvOutput = [];
     let fileName;
 
-    for (let i = 0; i < results.length; i++) {
+    for (let i = 0; i < fileContent.length; i++) {
         if (!fileName) {
-            fileName = await getFileName(results[i]['nome']);
+            fileName = await getFileName(fileContent[i]['nome']);
         }
 
         var lineOutput = {
-            vencimento: getDate(results[i]['data1']),
-            data_de_competencia: getDateC(results[i]['data1']),
-            cobranca_extraordinaria: getType(results[i]['tipo']),
-            valor: getValue(results[i]['valor3']),
-            unidade: results[i]['apto'],
-            bloco: results[i]['bloco'],
-            nosso_numero: results[i]['boleto1'],
-            complemento: results[i]['acordo'],
-            conta_categoria: getCategory(results[i]['especie'], categoryTxt),
+            vencimento: getDate(fileContent[i]['data1']),
+            data_de_competencia: getDateC(fileContent[i]['data1']),
+            cobranca_extraordinaria: getType(fileContent[i]['tipo']),
+            valor: getValue(fileContent[i]['valor3']),
+            unidade: fileContent[i]['apto'],
+            bloco: fileContent[i]['bloco'],
+            nosso_numero: fileContent[i]['boleto1'],
+            complemento: fileContent[i]['acordo'],
+            conta_categoria: getCategory(fileContent[i]['especie'], categoryTxt),
         };
 
         csvOutput.push(lineOutput);
     }
 
-    fs.writeFile('./src/files/output/exemploCobranca.csv', convertToCsv(csvOutput),{enconding:'utf-8',flag: 'a'}, function (err) {
+    await fs.writeFile('./src/files/output/exemploCobranca.csv', convertToCsv(csvOutput),{enconding:'utf-8',flag: 'a'}, function (err) {
         if (err) throw err;
         console.log('Arquivo salvo!');
     });
