@@ -22,8 +22,6 @@ module.exports = {
             }
         });
 
-        // await readFile(csvFile[0].path, categoryTxt);
-
         var options = {
             root: '/home/bruno/Desktop/projetos/conversorCsv/backend/src/files/output/',
             dotfiles: 'deny',
@@ -31,32 +29,30 @@ module.exports = {
                 'x-timestamp': Date.now(),
                 'x-sent': true,
                 'Content-Type': 'file/csv',
-                'Content-Disposition': 'attachment; filename="picture.csv"'
+                'Content-Disposition': 'attachment; filename="exemploCobranca.csv"'
             }
         }
 
-        let fileContent = await readFile(csvFile[0].path);
+        await readFile(csvFile[0].path, categoryTxt);
 
-        let fileName = await processarCsv(fileContent, categoryTxt);
-        console.log(fileName);
-
-        req.files.forEach(file => {
+        await req.files.forEach(file => {
             fs.unlinkSync(file.path);
         });
 
-        return await res.sendFile('exemploCobranca.csv', options);
-        // return await res.download('./src/files/output/exemploCobranca.csv');
-        // await res.download('./src/files/output/exemploCobranca.csv', 'cobrancas.csv', (err) => {
-        //     if (err) {
-        //         res.json(err);
-        //     }
-        // });
+        setTimeout(function(){
+            res.sendFile('exemploCobranca.csv', options);
+        }, 2000);
     },
+
+    async clearFiles(req, res) {
+        console.log("Entrou aqui");
+        console.log(req.body);
+    }
 };
 
 async function readTxtFile(files) {
     try {
-        file = files.filter(file => {
+        file = await files.filter(file => {
             if (file.originalname.includes(".txt")) {
                 return file;
             }
@@ -70,21 +66,17 @@ async function readTxtFile(files) {
     }
 }
 
-async function readFile(filePath) {
-    let results = await fs.createReadStream(filePath)
-    .pipe(csv())
-    .on('data', async (data) => results.push(data))
-    .on('end', async () => {
-        // return await processarCsv(results, categoryTxt);
-        console.log(results);
-        return results;
-    });
-
-    return results;
+async function readFile(filePath, categoryTxt) {
+    fs.createReadStream(filePath)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', async () => {
+            await processarCsv(results, categoryTxt);
+        });
 }
 
 async function processarCsv (fileContent, categoryTxt) {
-    var csvOutput = [];
+    let csvOutput = [];
     let fileName;
 
     for (let i = 0; i < fileContent.length; i++) {
@@ -107,7 +99,7 @@ async function processarCsv (fileContent, categoryTxt) {
         csvOutput.push(lineOutput);
     }
 
-    await fs.writeFile('./src/files/output/exemploCobranca.csv', convertToCsv(csvOutput),{enconding:'utf-8',flag: 'a'}, function (err) {
+    await fs.writeFile('./src/files/output/exemploCobranca.csv', await convertToCsv(csvOutput),{enconding:'utf-8',flag: 'a'}, function (err) {
         if (err) throw err;
         console.log('Arquivo salvo!');
     });
@@ -119,7 +111,7 @@ async function getFileName(field) {
     return field = field.replace(/ /g, "").replace(/\./g, "");
 }
 
-function convertToCsv(data) {
+async function convertToCsv(data) {
     const replacer = (key, value) => value === null ? '' : value; // specify how you want to handle null values here
     const header = Object.keys(data[0]);
     let csv = data.map(row => header.map(fieldName => JSON.stringify(row[fieldName], replacer)).join(','));

@@ -7,6 +7,7 @@ const ChargesController = require('./controllers/ChargesController');
 const UnitsController = require('./controllers/UnitsController');
 
 routes.post('/uploadCharges', upload.any(), ChargesController.sendCharges);
+routes.post('/charges:delete', ChargesController.clearFiles);
 routes.post('/uploadUnits', upload.any(), UnitsController.sendUnits);
 
 module.exports = routes;

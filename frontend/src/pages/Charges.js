@@ -10,7 +10,6 @@ export default class Charges extends Component {
             data.append('files', file);
         });
 
-        // let response;
         try {
             await api.post(`/uploadCharges`, data).then((response) => {
                 if (response.status >= 500) {
@@ -28,10 +27,30 @@ export default class Charges extends Component {
         }
     }
 
+    deleteFile = async () => {
+        try {
+            await api.post(`/charges?1`).then((response) => {
+                console.log(response.data);
+                if (response.status >= 300) {
+                    this.setState({
+                        hasError: true,
+                        errorMsg: response.data,
+                    });
+                } else {
+                    console.log(response);
+                }
+            });
+        }
+        catch (err) {
+            return;
+        }
+    }
+
     constructor(props) {
         super(props);
 
         this.sendRequest = this.sendRequest.bind(this);
+        this.deleteFile = this.deleteFile.bind(this);
 
         this.state = {
             files: [],
@@ -52,6 +71,7 @@ export default class Charges extends Component {
                     )}
                 </Dropzone>
                 <a href="/" className="btn btn-info">Voltar</a>
+                <a href="/charges" onClick={this.deleteFile} className="btn btn-danger">Deletar arquivo</a>
                 {(this.state.hasError) ?
                     <div className="alert alert-danger">{this.state.errorMsg}</div>
                     : <div></div>
