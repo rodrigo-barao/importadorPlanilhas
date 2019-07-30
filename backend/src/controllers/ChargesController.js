@@ -2,8 +2,6 @@ const csv = require('csv-parser');
 const fs = require('fs');
 const moment = require('moment');
 
-var results = [];
-
 module.exports = {
     async sendCharges(req, res) {
         if (!req.files) {
@@ -67,6 +65,8 @@ async function readTxtFile(files) {
 }
 
 async function readFile(filePath, categoryTxt) {
+    let results = [];
+
     fs.createReadStream(filePath)
         .pipe(csv())
         .on('data', (data) => results.push(data))
@@ -99,7 +99,7 @@ async function processarCsv (fileContent, categoryTxt) {
         csvOutput.push(lineOutput);
     }
 
-    await fs.writeFile('./src/files/output/exemploCobranca.csv', await convertToCsv(csvOutput),{enconding:'utf-8',flag: 'a'}, function (err) {
+    await fs.writeFile('./src/files/output/exemploCobranca.csv', await convertToCsv(csvOutput),{enconding:'utf-8',flag: 'w+'}, function (err) {
         if (err) throw err;
         console.log('Arquivo salvo!');
     });

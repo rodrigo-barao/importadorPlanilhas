@@ -78,7 +78,15 @@ export default class Charges extends Component {
 
         const backButton = {
             'marginLeft': '4%',
-            'marginTop': '10px',
+            'marginTop': '1%',
+            height: '40px',
+        }
+
+        const alertError = {
+            width: '32%',
+            'marginLeft': '3%',
+            'marginTop': '1%',
+            height: '40px',
         }
 
         return (
@@ -98,10 +106,10 @@ export default class Charges extends Component {
                     <a href="/" className="btn btn-info col-md-2" style={backButton}>Voltar</a>
                     <a href="/charges" hidden onClick={this.deleteFile} className="btn btn-danger" style={backButton}>Deletar arquivo</a>
                     {(this.state.hasError) ?
-                        <div className="alert alert-danger">{this.state.errorMsg}</div>
+                        <div className="alert alert-danger" style={alertError}>{this.state.errorMsg}</div>
                         : <div></div>
                     }
-                </div>
+                    </div>
             </div>
         );
     }

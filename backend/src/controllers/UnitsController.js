@@ -1,8 +1,6 @@
 const csv = require('csv-parser');
 const fs = require('fs');
 
-var results = [];
-
 module.exports = {
     async sendUnits(req, res) {
         if (!req.files) {
@@ -13,17 +11,33 @@ module.exports = {
             return res.json("Você não pode enviar mais de um arquivo");
         }
 
-        readFile(req.files[0].path, importType = null);
+        await readFile(req.files[0].path, importType = null);
 
-        req.files.forEach(file => {
+        await req.files.forEach(file => {
             fs.unlinkSync(file.path);
         });
 
-        return res.json("Sucesso");
+        var options = {
+            root: '/home/bruno/Desktop/projetos/conversorCsv/backend/src/files/output/',
+            dotfiles: 'deny',
+            headers: {
+                'x-timestamp': Date.now(),
+                'x-sent': true,
+                'Content-Type': 'file/csv',
+                'Content-Disposition': 'attachment; filename="exemploUnidade.csv"'
+            }
+        }
+
+        setTimeout(function(){
+            res.sendFile('exemploUnidade.csv', options);
+        }, 2000);
+
     },
 };
 
 function readFile(filePath) {
+    let results = [];
+
     fs.createReadStream(filePath)
     .pipe(csv())
     .on('data', (data) => results.push(data))
@@ -49,7 +63,7 @@ function processarCsv (results) {
             proprietário_telefone: joinTwoDatas(line['propriet_fonec'], line['propriet_foner']),
             proprietário_estado: line['propriet_celular'],
             proprietário_email: joinTwoDatas(line['propriet_mail'], line['propriet_mail2']),
-            proprietário_rg: line['propriet_rg'],
+            proprietário_rg: getRg(line['propriet_rg']),
             proprietário_cpf: line['propriet_doc/cnpj'],
 
             inquilino_nome: line['morador_nome'],
@@ -63,7 +77,7 @@ function processarCsv (results) {
         csvOutput.push(lineOutput);
     });
 
-    fs.writeFile('./src/files/output/exemploUnidade.csv', convertToCsv(csvOutput),{enconding:'utf-8',flag: 'a'}, function (err) {
+    fs.writeFile('./src/files/output/exemploUnidade.csv', convertToCsv(csvOutput),{enconding:'utf-8',flag: 'w+'}, function (err) {
         if (err) throw err;
         console.log('Arquivo salvo!');
     });
@@ -79,8 +93,14 @@ function convertToCsv(data) {
     return csv;
 }
 
-function getRg(Rg) {
-    return Rg = Rg.replace("RG:", "").replace(/\./g, "").replace(",", "").replace("-", "").replace(" ", "");
+function getRg(rg) {
+    // console.log(rg);
+    if (!rg) {
+        return "";
+    }
+
+    return rg = rg.replace("RG:", "").replace(" ", "");
+    // .replace(/\./g, "").replace(",", "").replace("-", "") -> Não vai precisar
 }
 
 function joinTwoDatas(field1, field2) {
